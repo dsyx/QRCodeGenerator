@@ -63,7 +63,7 @@ void ErrorCorrection::decode(QSharedPointer<std::vector<int>> received,
 
     QSharedPointer<ModulusPoly> knownErrors = field_.getOne();
     for (int i=0;i<erasures->size();i++) {
-      int b = field_.exp(received->size() - 1 - (*erasures)[i]);
+      int b = field_.exp(static_cast<int>(received->size()) - 1 - (*erasures)[i]);
       // Add (1 - bx) term:
       QSharedPointer<std::vector<int>> one_minus_b_x(new std::vector<int>(2));
       (*one_minus_b_x)[1]=field_.subtract(0,b);
@@ -86,7 +86,7 @@ void ErrorCorrection::decode(QSharedPointer<std::vector<int>> received,
     QSharedPointer<std::vector<int>> errorMagnitudes = findErrorMagnitudes(omega, sigma, errorLocations);
 
     for (int i = 0; i < errorLocations->size(); i++) {
-      int position = received->size() - 1 - field_.log((*errorLocations)[i]);
+      int position = static_cast<int>(received->size()) - 1 - field_.log((*errorLocations)[i]);
       if (position < 0) {
         throw ReedSolomonException("Bad error location!");
       }
@@ -201,7 +201,7 @@ QSharedPointer<std::vector<int>> ErrorCorrection::findErrorMagnitudes(QSharedPoi
   QSharedPointer<ModulusPoly> formalDerivative (new ModulusPoly(field_, formalDerivativeCoefficients));
 
   // This is directly applying Forney's Formula
-  int s = errorLocations->size();
+  int s = static_cast<int>(errorLocations->size());
   QSharedPointer<std::vector<int>> result ( new std::vector<int>(s));
   for (i = 0; i < s; i++) {
     int xiInverse = field_.inverse((*errorLocations)[i]);

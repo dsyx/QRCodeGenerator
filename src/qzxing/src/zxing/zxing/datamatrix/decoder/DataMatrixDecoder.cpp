@@ -43,10 +43,10 @@ namespace datamatrix {
 Decoder::Decoder() : rsDecoder_(GenericGF::DATA_MATRIX_FIELD_256) {}
 
 void Decoder::correctErrors(QSharedPointer<std::vector<zxing::byte>> codewordBytes, int numDataCodewords) {
-  int numCodewords = codewordBytes->size();
-  QSharedPointer<std::vector<int>> codewordInts(new std::vector<int>(numCodewords));
-  for (int i = 0; i < numCodewords; i++) {
-    (*codewordInts)[i] = (*codewordBytes)[i] & 0xff;
+    int numCodewords = static_cast<int>(codewordBytes->size());
+    QSharedPointer<std::vector<int>> codewordInts(new std::vector<int>(numCodewords));
+    for (int i = 0; i < numCodewords; i++) {
+        (*codewordInts)[i] = (*codewordBytes)[i] & 0xff;
   }
   int numECCodewords = numCodewords - numDataCodewords;
   try {

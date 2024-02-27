@@ -60,7 +60,7 @@ void GenericGF::initialize() {
   size_t x = 1;
 
   for (size_t i = 0; i < size; i++) {
-    expTable[i] = x;
+    expTable[i] = static_cast<int>(x);
     x <<= 1; // x = x * 2; we're assuming the generator alpha is 2
     if (x >= size) {
       x ^= primitive;
@@ -68,7 +68,7 @@ void GenericGF::initialize() {
     }
   }
   for (size_t i = 0; i < size-1; i++) {
-    logTable.at(expTable.at(i)) = i;
+    logTable.at(expTable.at(static_cast<int>(i))) = static_cast<int>(i);
   }
   //logTable[0] == 0 but this should never be used
   QSharedPointer<std::vector<int>> coefficients_zero(new std::vector<int>(1));

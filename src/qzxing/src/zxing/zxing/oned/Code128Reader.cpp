@@ -511,7 +511,7 @@ QSharedPointer<Result> Code128Reader::decodeRow(int rowNumber, QSharedPointer<Bi
   }
 
   // Need to pull out the check digits from string
-  int resultLength = result.length();
+  int resultLength = static_cast<int>(result.length());
   if (resultLength == 0) {
     // false positive
     throw NotFoundException();
@@ -530,7 +530,7 @@ QSharedPointer<Result> Code128Reader::decodeRow(int rowNumber, QSharedPointer<Bi
   float left = (float) (startPatternInfo[1] + startPatternInfo[0]) / 2.0f;
   float right = lastStart + lastPatternSize / 2.0f;
 
-  int rawCodesSize = rawCodes.size();
+  int rawCodesSize = static_cast<int>(rawCodes.size());
   QSharedPointer<std::vector<zxing::byte>> rawBytes (new std::vector<zxing::byte>(rawCodesSize));
   for (int i = 0; i < rawCodesSize; i++) {
     (*rawBytes)[i] = rawCodes[i];

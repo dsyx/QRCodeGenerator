@@ -53,8 +53,8 @@ int EAN8Reader::decodeMiddle(QSharedPointer<BitArray> row,
   for (int x = 0; x < 4 && rowOffset < end; x++) {
     int bestMatch = decodeDigit(row, counters, rowOffset, L_PATTERNS);
     result.append(1, zxing::byte('0' + bestMatch));
-    for (int i = 0, end = counters.size(); i < end; i++) {
-      rowOffset += counters[i];
+    for (size_t i = 0, end = counters.size(); i < end; i++) {
+        rowOffset += counters[i];
     }
   }
   return rowOffset;

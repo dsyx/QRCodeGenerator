@@ -604,7 +604,7 @@ DataCharacter RSSExpandedReader::decodeDataCharacter(QSharedPointer<BitArray> ro
 
     int oddSum = 0;
     int oddChecksumPortion = 0;
-    for (int i = oddCounts.size() - 1; i >= 0; i--) {
+    for (size_t i = oddCounts.size() - 1; i >= 0; i--) {
         if (isNotA1left(pattern, isOddPattern, leftChar)) {
             int weight = WEIGHTS[weightRowNumber][2 * i];
             oddChecksumPortion += oddCounts[i] * weight;
@@ -612,7 +612,7 @@ DataCharacter RSSExpandedReader::decodeDataCharacter(QSharedPointer<BitArray> ro
         oddSum += oddCounts[i];
     }
     int evenChecksumPortion = 0;
-    for (int i = evenCounts.size() - 1; i >= 0; i--) {
+    for (size_t i = evenCounts.size() - 1; i >= 0; i--) {
         if (isNotA1left(pattern, isOddPattern, leftChar)) {
             int weight = WEIGHTS[weightRowNumber][2 * i + 1];
             evenChecksumPortion += evenCounts[i] * weight;

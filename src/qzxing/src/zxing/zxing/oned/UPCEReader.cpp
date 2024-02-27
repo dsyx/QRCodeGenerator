@@ -65,7 +65,7 @@ int UPCEReader::decodeMiddle(QSharedPointer<BitArray> row, Range const& startRan
   for (int x = 0; x < 6 && rowOffset < end; x++) {
     int bestMatch = decodeDigit(row, counters, rowOffset, L_AND_G_PATTERNS);
     result.append(1, zxing::byte('0' + bestMatch % 10));
-    for (int i = 0, e = counters.size(); i < e; i++) {
+    for (size_t i = 0, e = counters.size(); i < e; i++) {
       rowOffset += counters[i];
     }
     if (bestMatch >= 10) {

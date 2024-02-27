@@ -147,7 +147,7 @@ QSharedPointer<std::vector<int>> BitMatrix::getTopLeftOnBit() const {
 }
 
 QSharedPointer<std::vector<int>> BitMatrix::getBottomRightOnBit() const {
-    int bitsOffset = bits->size() - 1;
+    int bitsOffset = static_cast<int>(bits->size()) - 1;
     while (bitsOffset >= 0 && (*bits)[bitsOffset] == 0) {
         bitsOffset--;
     }

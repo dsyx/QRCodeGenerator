@@ -101,7 +101,7 @@ QSharedPointer<Result> ITFReader::decodeRow(int rowNumber, QSharedPointer<BitArr
   // an assumption that the decoded string must be 6, 10 or 14 digits.
   int length = resultString->size();
   bool lengthOK = false;
-  for (int i = 0, e = allowedLengths->size(); i < e; i++)
+  for (size_t i = 0, e = allowedLengths->size(); i < e; i++)
   {
     if (length == (*allowedLengths)[i])
     {

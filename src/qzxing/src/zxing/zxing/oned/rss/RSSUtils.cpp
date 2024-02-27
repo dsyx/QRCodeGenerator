@@ -12,7 +12,7 @@ int RSSUtils::getRSSvalue(std::vector<int> widths, int maxWidth, bool noNarrow)
     }
     int val = 0;
     int narrowMask = 0;
-    int elements = widths.size();
+    int elements = static_cast<int>(widths.size());
     for (int bar = 0; bar < elements - 1; bar++) {
         int elmWidth;
         for (elmWidth = 1, narrowMask |= 1 << bar;

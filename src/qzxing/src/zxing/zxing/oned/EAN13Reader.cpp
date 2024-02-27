@@ -47,7 +47,7 @@ int EAN13Reader::decodeMiddle(QSharedPointer<BitArray> row,
   {
     int bestMatch = decodeDigit(row, counters, rowOffset, L_AND_G_PATTERNS);
     resultString.append(1, zxing::byte('0' + bestMatch % 10));
-    for (int i = 0, end = counters.size(); i < end; i++)
+    for (size_t i = 0, end = counters.size(); i < end; i++)
     {
       rowOffset += counters[i];
     }
@@ -67,7 +67,7 @@ int EAN13Reader::decodeMiddle(QSharedPointer<BitArray> row,
     int bestMatch =
         decodeDigit(row, counters, rowOffset, L_PATTERNS);
     resultString.append(1, zxing::byte('0' + bestMatch));
-    for (int i = 0, end = counters.size(); i < end; i++)
+    for (size_t i = 0, end = counters.size(); i < end; i++)
     {
       rowOffset += counters[i];
     }

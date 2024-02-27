@@ -46,7 +46,7 @@ namespace zxing
 
     void Decoder::correctErrors(QSharedPointer<std::vector<zxing::byte>> codewordBytes, int numDataCodewords)
     {
-      int numCodewords = codewordBytes->size();
+      int numCodewords = static_cast<int>(codewordBytes->size());
       QSharedPointer<std::vector<int>> codewordInts(new std::vector<int>(numCodewords));
       for (int i = 0; i < numCodewords; i++)
       {

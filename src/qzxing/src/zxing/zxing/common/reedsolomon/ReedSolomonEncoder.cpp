@@ -58,7 +58,7 @@ void ReedSolomonEncoder::encode(std::vector<zxing::byte> &toEncode, int ecBytes)
     info = info->multiplyByMonomial(ecBytes, 1);
     QSharedPointer<GenericGFPoly> remainder = info->divide(generator)[1];
     QSharedPointer<std::vector<int>> coefficients = remainder->getCoefficients();
-    int numZeroCoefficients = ecBytes - coefficients->size();
+    int numZeroCoefficients = ecBytes - static_cast<int>(coefficients->size());
     for (int i = 0; i < numZeroCoefficients; i++) {
         toEncode[size_t(dataBytes + i)] = 0;
     }

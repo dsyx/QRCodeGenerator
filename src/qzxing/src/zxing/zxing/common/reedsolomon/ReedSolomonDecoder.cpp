@@ -61,7 +61,7 @@ void ReedSolomonDecoder::decode(QSharedPointer<std::vector<int>> received, int t
   QSharedPointer<std::vector<int>> errorLocations = findErrorLocations(sigma);
   QSharedPointer<std::vector<int>> errorMagitudes = findErrorMagnitudes(omega, errorLocations);
   for (int i = 0; i < errorLocations->size(); i++) {
-    int position = received->size() - 1 - field->log((*errorLocations)[i]);
+    int position = static_cast<int>(received->size()) - 1 - field->log((*errorLocations)[i]);
     if (position < 0) {
       throw ReedSolomonException("Bad error location");
     }
@@ -139,8 +139,8 @@ QSharedPointer<std::vector<int>> ReedSolomonDecoder::findErrorLocations(QSharedP
   QSharedPointer<std::vector<int>> result(new std::vector<int>(numErrors));
   int e = 0;
   for (size_t i = 1; i < field->getSize() && e < numErrors; i++) {
-    if (errorLocator->evaluateAt(i) == 0) {
-      (*result)[e] = field->inverse(i);
+    if (errorLocator->evaluateAt(static_cast<int>(i)) == 0) {
+      (*result)[e] = field->inverse(static_cast<int>(i));
       e++;
     }
   }
@@ -152,7 +152,7 @@ QSharedPointer<std::vector<int>> ReedSolomonDecoder::findErrorLocations(QSharedP
 
 QSharedPointer<std::vector<int>> ReedSolomonDecoder::findErrorMagnitudes(QSharedPointer<GenericGFPoly> errorEvaluator, QSharedPointer<std::vector<int>> errorLocations) {
   // This is directly applying Forney's Formula
-  int s = errorLocations->size();
+  int s = static_cast<int>(errorLocations->size());
   QSharedPointer<std::vector<int>> result(new std::vector<int>(s));
   for (int i = 0; i < s; i++) {
     int xiInverse = field->inverse((*errorLocations)[i]);

@@ -68,7 +68,7 @@ QSharedPointer<DecoderResult> Decoder::decode(QSharedPointer<BitMatrix> bits, De
  * @throws FormatException
  */
 void Decoder::verifyCodewordCount(QSharedPointer<std::vector<int>> codewords, int numECCodewords) {
-  int cwsize = codewords->size();
+  int cwsize = static_cast<int>(codewords->size());
   if (cwsize < 4) {
     // Codeword array size should be at least 4 allowing for
     // Count CW, At least one Data CW, Error Correction CW, Error Correction CW

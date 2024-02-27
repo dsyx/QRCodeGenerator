@@ -66,7 +66,7 @@ void BitArray::setBulk(int i, int newBits) {
 }
 
 void BitArray::clear() {
-    int max = bits->size();
+    int max = static_cast<int>(bits->size());
     for (int i = 0; i < max; i++) {
         (*bits)[i] = 0;
     }

@@ -173,7 +173,7 @@ QSharedPointer<DecoderResult> Decoder::decode(QSharedPointer<zxing::aztec::Aztec
   QSharedPointer<std::vector<zxing::byte>> arrayOut(new std::vector<zxing::byte>(aCorrectedBits->getSize()));
   for (size_t i = 0; i < aCorrectedBits->getSize(); i++)
   {
-    (*arrayOut)[i] = (zxing::byte)aCorrectedBits->get(i);
+      (*arrayOut)[i] = (zxing::byte)aCorrectedBits->get(static_cast<int>(i));
   }
 
   // std::printf("returning\n");

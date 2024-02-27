@@ -66,7 +66,7 @@ QSharedPointer<BitArray> GlobalHistogramBinarizer::getBlackRow(int y, QSharedPoi
     QSharedPointer<std::vector<zxing::byte>> localLuminances = source.getRow(y, luminances);
     if (false) {
         std::cerr << "gbr " << y << " r ";
-        for(int i=0, e=localLuminances->size(); i < e; ++i) {
+        for(size_t i=0, e=localLuminances->size(); i < e; ++i) {
             std::cerr << 0+(*localLuminances)[i] << " ";
         }
         std::cerr << std::endl;
@@ -135,7 +135,7 @@ using namespace std;
 
 int GlobalHistogramBinarizer::estimateBlackPoint(QSharedPointer<std::vector<int>> const& buckets) {
     // Find tallest peak in histogram
-    int numBuckets = buckets->size();
+    int numBuckets = static_cast<int>(buckets->size());
     int maxBucketCount = 0;
     int firstPeak = 0;
     int firstPeakSize = 0;

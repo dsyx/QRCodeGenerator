@@ -357,7 +357,7 @@ int Detector::patternMatchVariance(QSharedPointer<std::vector<int>>& counters,
                                    const int pattern[],
                                    int maxIndividualVariance)
 {
-  int numCounters = counters->size();
+  int numCounters = static_cast<int>(counters->size());
   int total = 0;
   int patternLength = 0;
   for (int i = 0; i < numCounters; i++) {
