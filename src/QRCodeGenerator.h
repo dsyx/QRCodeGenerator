@@ -2,16 +2,13 @@
 #define QRCODEGENERATOR_H
 
 #include <QComboBox>
-#include <QFormLayout>
-#include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QMainWindow>
 #include <QMap>
 #include <QPushButton>
-#include <QSpacerItem>
 #include <QTextEdit>
-#include <QVBoxLayout>
+#include <QWidget>
 #include "QZXing.h"
 
 class QRCodeGenerator : public QMainWindow
@@ -22,30 +19,28 @@ public:
     QRCodeGenerator(QWidget *parent = nullptr);
     ~QRCodeGenerator();
 
+private:
+    void initPreviewPart();
+    void initSettingPart();
+    void initOperationPart();
+
 private slots:
     void generate();
 
 private:
-    QLabel *mPreviewLabel = new QLabel();
+    QLabel *mPreviewLabel;
+    QWidget *mPreviewWidget;
 
     QLabel *mErrorCorrectionLabel;
     QComboBox *mErrorCorrectionComboBox;
     QMap<QString, QZXing::EncodeErrorCorrectionLevel> mErrorCorrectionMap;
-
     QLabel *mSizeLabel;
-    QLabel *mSizeXLabel;
     QLineEdit *mSizeWidthEdit;
     QLineEdit *mSizeHeightEdit;
+    QWidget *mSettingWidget;
 
     QTextEdit *mDataEdit;
-
-    QSpacerItem *mSpacer;
     QPushButton *mGenerateButton;
-
-    QHBoxLayout *mSizeEditLayout;
-    QFormLayout *mSettingLayout;
-    QHBoxLayout *mPreviewAndSettingLayout;
-    QHBoxLayout *mButtonLayout;
-    QVBoxLayout *mMainLayout;
+    QWidget *mOperationWidget;
 };
 #endif // QRCODEGENERATOR_H

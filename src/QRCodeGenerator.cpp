@@ -1,66 +1,99 @@
 #include "QRCodeGenerator.h"
-#include <QDebug>
+#include <QFormLayout>
+#include <QHBoxLayout>
 #include <QImage>
-#include <QPixmap>
-#include <exception>
 #include <QIntValidator>
+#include <QPixmap>
+#include <QSpacerItem>
+#include <QVBoxLayout>
 
 QRCodeGenerator::QRCodeGenerator(QWidget *parent)
-try : QMainWindow(parent)
-    , mPreviewLabel(new QLabel("QR Code Preview"))
-    , mErrorCorrectionLabel(new QLabel(QString::fromUtf8("Error Correction:")))
-    , mErrorCorrectionComboBox(new QComboBox())
-    , mSizeLabel(new QLabel(QString::fromUtf8("Image Size:")))
-    , mSizeXLabel(new QLabel(QString::fromUtf8("x")))
-    , mSizeWidthEdit(new QLineEdit(QString::fromUtf8("256")))
-    , mSizeHeightEdit(new QLineEdit(QString::fromUtf8("256")))
-    , mDataEdit(new QTextEdit())
-    , mSpacer(new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum))
-    , mGenerateButton(new QPushButton(QString::fromUtf8("Generate")))
-    , mSizeEditLayout(new QHBoxLayout())
-    , mSettingLayout(new QFormLayout())
-    , mPreviewAndSettingLayout(new QHBoxLayout())
-    , mButtonLayout(new QHBoxLayout())
-    , mMainLayout(new QVBoxLayout())
+    : QMainWindow(parent)
 {
-    setMinimumSize(480, 600);
+    resize(600, 600);
 
-    mPreviewLabel->setAlignment(Qt::AlignCenter);
-    mPreviewLabel->setFrameStyle(QFrame::Panel | QFrame::Sunken);
+    initPreviewPart();
+    initSettingPart();
+    initOperationPart();
 
-    mErrorCorrectionMap.insert(QString::fromUtf8("Low"), QZXing::EncodeErrorCorrectionLevel_L);
-    mErrorCorrectionMap.insert(QString::fromUtf8("Medium"), QZXing::EncodeErrorCorrectionLevel_M);
-    mErrorCorrectionMap.insert(QString::fromUtf8("Quartile"), QZXing::EncodeErrorCorrectionLevel_Q);
-    mErrorCorrectionMap.insert(QString::fromUtf8("High"), QZXing::EncodeErrorCorrectionLevel_H);
-    mErrorCorrectionComboBox->insertItems(0, mErrorCorrectionMap.keys());
-    mSettingLayout->addRow(mErrorCorrectionLabel, mErrorCorrectionComboBox);
+    QHBoxLayout *psLayout = new QHBoxLayout();
+    psLayout->addWidget(mPreviewWidget, 6);
+    psLayout->addWidget(mSettingWidget, 4);
 
-    mSizeWidthEdit->setValidator(new QIntValidator(mSizeWidthEdit));
-    mSizeHeightEdit->setValidator(new QIntValidator(mSizeHeightEdit));
-    mSizeEditLayout->addWidget(mSizeWidthEdit);
-    mSizeEditLayout->addWidget(mSizeXLabel);
-    mSizeEditLayout->addWidget(mSizeHeightEdit);
-    mSettingLayout->addRow(mSizeLabel, mSizeEditLayout);
-
-    mPreviewAndSettingLayout->addWidget(mPreviewLabel, 6);
-    mPreviewAndSettingLayout->addLayout(mSettingLayout, 4);
-
-    mButtonLayout->addSpacerItem(mSpacer);
-    mButtonLayout->addWidget(mGenerateButton);
-    connect(mGenerateButton, &QPushButton::clicked, this, &QRCodeGenerator::generate);
-
-    mMainLayout->addLayout(mPreviewAndSettingLayout, 4);
-    mMainLayout->addWidget(mDataEdit, 4);
-    mMainLayout->addLayout(mButtonLayout, 2);
+    QVBoxLayout *layout = new QVBoxLayout();
+    layout->addLayout(psLayout, 6);
+    layout->addWidget(mOperationWidget, 4);
 
     QWidget *centeralWidget = new QWidget();
-    centeralWidget->setLayout(mMainLayout);
+    centeralWidget->setLayout(layout);
     setCentralWidget(centeralWidget);
-} catch (const std::exception &e) {
-    qFatal("QRCodeGenerator(QWidget *parent) failed: %s", e.what());
 }
 
 QRCodeGenerator::~QRCodeGenerator() {}
+
+void QRCodeGenerator::initPreviewPart()
+{
+    mPreviewLabel = new QLabel("QR Code Preview");
+    mPreviewLabel->setAlignment(Qt::AlignCenter);
+    mPreviewLabel->setFrameStyle(QFrame::Panel | QFrame::Sunken);
+
+    QGridLayout *layout = new QGridLayout();
+    layout->addWidget(mPreviewLabel);
+
+    mPreviewWidget = new QWidget();
+    mPreviewWidget->setLayout(layout);
+}
+
+void QRCodeGenerator::initSettingPart()
+{
+    mErrorCorrectionLabel = new QLabel("Error Correction:");
+    mErrorCorrectionComboBox = new QComboBox();
+    mErrorCorrectionMap.insert(QString("Low"), QZXing::EncodeErrorCorrectionLevel_L);
+    mErrorCorrectionMap.insert(QString("Medium"), QZXing::EncodeErrorCorrectionLevel_M);
+    mErrorCorrectionMap.insert(QString("Quartile"), QZXing::EncodeErrorCorrectionLevel_Q);
+    mErrorCorrectionMap.insert(QString("High"), QZXing::EncodeErrorCorrectionLevel_H);
+    mErrorCorrectionComboBox->insertItems(0, mErrorCorrectionMap.keys());
+
+    mSizeLabel = new QLabel("Size (Width x Height):");
+    mSizeWidthEdit = new QLineEdit("256");
+    mSizeWidthEdit->setValidator(new QIntValidator(mSizeWidthEdit));
+    mSizeHeightEdit = new QLineEdit("256");
+    mSizeHeightEdit->setValidator(new QIntValidator(mSizeHeightEdit));
+    QHBoxLayout *sizeInputLayout = new QHBoxLayout();
+    sizeInputLayout->addWidget(mSizeWidthEdit);
+    sizeInputLayout->addWidget(new QLabel("x"));
+    sizeInputLayout->addWidget(mSizeHeightEdit);
+
+    QFormLayout *layout = new QFormLayout();
+    layout->addRow(mErrorCorrectionLabel, mErrorCorrectionComboBox);
+    layout->addRow(mSizeLabel, sizeInputLayout);
+
+    mSettingWidget = new QWidget();
+    mSettingWidget->setLayout(layout);
+}
+
+void QRCodeGenerator::initOperationPart()
+{
+    mDataEdit = new QTextEdit("Hello World");
+
+    mGenerateButton = new QPushButton("Generate");
+    connect(mGenerateButton, &QPushButton::clicked, this, &QRCodeGenerator::generate);
+
+    QVBoxLayout *buttonLayout = new QVBoxLayout();
+    QSpacerItem *verticalSpacer = new QSpacerItem(20,
+                                                  40,
+                                                  QSizePolicy::Minimum,
+                                                  QSizePolicy::Expanding);
+    buttonLayout->addSpacerItem(verticalSpacer);
+    buttonLayout->addWidget(mGenerateButton);
+
+    QHBoxLayout *layout = new QHBoxLayout();
+    layout->addWidget(mDataEdit, 8);
+    layout->addLayout(buttonLayout, 2);
+
+    mOperationWidget = new QWidget();
+    mOperationWidget->setLayout(layout);
+}
 
 void QRCodeGenerator::generate()
 {
