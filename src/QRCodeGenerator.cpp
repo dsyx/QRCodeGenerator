@@ -1,8 +1,10 @@
 #include "QRCodeGenerator.h"
+#include <QDebug>
+#include <QFileDialog>
 #include <QFormLayout>
 #include <QHBoxLayout>
-#include <QImage>
 #include <QIntValidator>
+#include <QMessageBox>
 #include <QPixmap>
 #include <QSpacerItem>
 #include <QVBoxLayout>
@@ -12,9 +14,12 @@ QRCodeGenerator::QRCodeGenerator(QWidget *parent)
 {
     resize(600, 600);
 
+    initMenuBar();
     initPreviewPart();
     initSettingPart();
     initOperationPart();
+
+    setMenuBar(mMenuBar);
 
     QHBoxLayout *psLayout = new QHBoxLayout();
     psLayout->addWidget(mPreviewWidget, 6);
@@ -31,9 +36,20 @@ QRCodeGenerator::QRCodeGenerator(QWidget *parent)
 
 QRCodeGenerator::~QRCodeGenerator() {}
 
+void QRCodeGenerator::initMenuBar()
+{
+    mFileMenu = new QMenu(QStringLiteral("&File"));
+    mSaveAsAction = new QAction(QStringLiteral("Save &as"));
+    connect(mSaveAsAction, &QAction::triggered, this, &QRCodeGenerator::saveAs);
+    mFileMenu->addAction(mSaveAsAction);
+
+    mMenuBar = new QMenuBar();
+    mMenuBar->addMenu(mFileMenu);
+}
+
 void QRCodeGenerator::initPreviewPart()
 {
-    mPreviewLabel = new QLabel("QR Code Preview");
+    mPreviewLabel = new QLabel(QStringLiteral("QR Code Preview"));
     mPreviewLabel->setAlignment(Qt::AlignCenter);
     mPreviewLabel->setFrameStyle(QFrame::Panel | QFrame::Sunken);
 
@@ -46,22 +62,22 @@ void QRCodeGenerator::initPreviewPart()
 
 void QRCodeGenerator::initSettingPart()
 {
-    mErrorCorrectionLabel = new QLabel("Error Correction:");
+    mErrorCorrectionLabel = new QLabel(QStringLiteral("Error Correction:"));
     mErrorCorrectionComboBox = new QComboBox();
-    mErrorCorrectionMap.insert(QString("Low"), QZXing::EncodeErrorCorrectionLevel_L);
-    mErrorCorrectionMap.insert(QString("Medium"), QZXing::EncodeErrorCorrectionLevel_M);
-    mErrorCorrectionMap.insert(QString("Quartile"), QZXing::EncodeErrorCorrectionLevel_Q);
-    mErrorCorrectionMap.insert(QString("High"), QZXing::EncodeErrorCorrectionLevel_H);
+    mErrorCorrectionMap.insert(QStringLiteral("Low"), QZXing::EncodeErrorCorrectionLevel_L);
+    mErrorCorrectionMap.insert(QStringLiteral("Medium"), QZXing::EncodeErrorCorrectionLevel_M);
+    mErrorCorrectionMap.insert(QStringLiteral("Quartile"), QZXing::EncodeErrorCorrectionLevel_Q);
+    mErrorCorrectionMap.insert(QStringLiteral("High"), QZXing::EncodeErrorCorrectionLevel_H);
     mErrorCorrectionComboBox->insertItems(0, mErrorCorrectionMap.keys());
 
-    mSizeLabel = new QLabel("Size (Width x Height):");
-    mSizeWidthEdit = new QLineEdit("256");
+    mSizeLabel = new QLabel(QStringLiteral("Size (Width x Height):"));
+    mSizeWidthEdit = new QLineEdit(QStringLiteral("256"));
     mSizeWidthEdit->setValidator(new QIntValidator(mSizeWidthEdit));
-    mSizeHeightEdit = new QLineEdit("256");
+    mSizeHeightEdit = new QLineEdit(QStringLiteral("256"));
     mSizeHeightEdit->setValidator(new QIntValidator(mSizeHeightEdit));
     QHBoxLayout *sizeInputLayout = new QHBoxLayout();
     sizeInputLayout->addWidget(mSizeWidthEdit);
-    sizeInputLayout->addWidget(new QLabel("x"));
+    sizeInputLayout->addWidget(new QLabel(QStringLiteral("x")));
     sizeInputLayout->addWidget(mSizeHeightEdit);
 
     QFormLayout *layout = new QFormLayout();
@@ -74,9 +90,9 @@ void QRCodeGenerator::initSettingPart()
 
 void QRCodeGenerator::initOperationPart()
 {
-    mDataEdit = new QTextEdit("Hello World");
+    mDataEdit = new QTextEdit(QStringLiteral("Hello World"));
 
-    mGenerateButton = new QPushButton("Generate");
+    mGenerateButton = new QPushButton(QStringLiteral("Generate"));
     connect(mGenerateButton, &QPushButton::clicked, this, &QRCodeGenerator::generate);
 
     QVBoxLayout *buttonLayout = new QVBoxLayout();
@@ -95,6 +111,30 @@ void QRCodeGenerator::initOperationPart()
     mOperationWidget->setLayout(layout);
 }
 
+void QRCodeGenerator::saveAs()
+{
+    if (mQRCode.isNull()) {
+        QMessageBox::critical(this,
+                              QStringLiteral("Error"),
+                              QStringLiteral(
+                                  "No valid QR code found, please generate a QR code first."));
+        return;
+    }
+
+    QString fileName = QFileDialog::getSaveFileName(this,
+                                                    QStringLiteral("Save QR Code"),
+                                                    QString(),
+                                                    QStringLiteral("Images (*.png *.xpm *.jpg)"));
+    if (fileName.isEmpty()) {
+        return;
+    }
+    if (!mQRCode.save(fileName)) {
+        QMessageBox::warning(this,
+                             QStringLiteral("Warning"),
+                             QStringLiteral("Failed to save QR code."));
+    }
+}
+
 void QRCodeGenerator::generate()
 {
     QString data = mDataEdit->toPlainText();
@@ -103,14 +143,14 @@ void QRCodeGenerator::generate()
     }
     QZXing::EncodeErrorCorrectionLevel errorCorrection = mErrorCorrectionMap[mErrorCorrectionComboBox->currentText()];
     QSize size(mSizeWidthEdit->text().toInt(), mSizeHeightEdit->text().toInt());
-    QImage qrcode = QZXing::encodeData(data,
-                                       QZXing::EncoderFormat_QR_CODE,
-                                       size,
-                                       errorCorrection,
-                                       false,
-                                       false);
+    mQRCode = QZXing::encodeData(data,
+                                 QZXing::EncoderFormat_QR_CODE,
+                                 size,
+                                 errorCorrection,
+                                 false,
+                                 false);
 
-    QPixmap pixmap = QPixmap::fromImage(qrcode);
+    QPixmap pixmap = QPixmap::fromImage(mQRCode);
     pixmap = pixmap.scaled(mPreviewLabel->size());
     mPreviewLabel->setPixmap(pixmap);
 }
