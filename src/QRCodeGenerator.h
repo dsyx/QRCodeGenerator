@@ -32,6 +32,8 @@ private:
 private slots:
     void saveAs();
     void generate();
+    void print();
+    void generateAndPrint();
 
 private:
     QImage mQRCode;
@@ -49,10 +51,17 @@ private:
     QLabel *mSizeLabel;
     QLineEdit *mSizeWidthEdit;
     QLineEdit *mSizeHeightEdit;
+    QLabel *mPrinterLabel;
+    QComboBox *mPrinterComboBox;
     QWidget *mSettingWidget;
 
     QTextEdit *mDataEdit;
+    QPushButton *mGenerateAndPrintButton;
+    QPushButton *mPrintButton;
     QPushButton *mGenerateButton;
     QWidget *mOperationWidget;
+
+private:
+    static constexpr int DEFAULT_QR_CODE_LENGTH_OR_WIDTH = 256;
 };
 #endif // QRCODEGENERATOR_H

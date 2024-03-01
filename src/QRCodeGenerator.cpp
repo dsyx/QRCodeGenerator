@@ -4,16 +4,19 @@
 #include <QFormLayout>
 #include <QHBoxLayout>
 #include <QIntValidator>
+#include <QList>
 #include <QMessageBox>
+#include <QPainter>
 #include <QPixmap>
+#include <QPrinter>
+#include <QPrinterInfo>
+#include <QSizePolicy>
 #include <QSpacerItem>
 #include <QVBoxLayout>
 
 QRCodeGenerator::QRCodeGenerator(QWidget *parent)
     : QMainWindow(parent)
 {
-    resize(600, 600);
-
     initMenuBar();
     initPreviewPart();
     initSettingPart();
@@ -52,6 +55,7 @@ void QRCodeGenerator::initPreviewPart()
     mPreviewLabel = new QLabel(QStringLiteral("QR Code Preview"));
     mPreviewLabel->setAlignment(Qt::AlignCenter);
     mPreviewLabel->setFrameStyle(QFrame::Panel | QFrame::Sunken);
+    mPreviewLabel->setMinimumSize(DEFAULT_QR_CODE_LENGTH_OR_WIDTH, DEFAULT_QR_CODE_LENGTH_OR_WIDTH);
 
     QGridLayout *layout = new QGridLayout();
     layout->addWidget(mPreviewLabel);
@@ -71,18 +75,26 @@ void QRCodeGenerator::initSettingPart()
     mErrorCorrectionComboBox->insertItems(0, mErrorCorrectionMap.keys());
 
     mSizeLabel = new QLabel(QStringLiteral("Size (Width x Height):"));
-    mSizeWidthEdit = new QLineEdit(QStringLiteral("256"));
+    mSizeWidthEdit = new QLineEdit(QString::number(DEFAULT_QR_CODE_LENGTH_OR_WIDTH));
     mSizeWidthEdit->setValidator(new QIntValidator(mSizeWidthEdit));
-    mSizeHeightEdit = new QLineEdit(QStringLiteral("256"));
+    mSizeHeightEdit = new QLineEdit(QString::number(DEFAULT_QR_CODE_LENGTH_OR_WIDTH));
     mSizeHeightEdit->setValidator(new QIntValidator(mSizeHeightEdit));
     QHBoxLayout *sizeInputLayout = new QHBoxLayout();
     sizeInputLayout->addWidget(mSizeWidthEdit);
     sizeInputLayout->addWidget(new QLabel(QStringLiteral("x")));
     sizeInputLayout->addWidget(mSizeHeightEdit);
 
+    mPrinterLabel = new QLabel(QStringLiteral("Printer:"));
+    mPrinterComboBox = new QComboBox();
+    QList<QPrinterInfo> printerInfoList = QPrinterInfo::availablePrinters();
+    for (const auto &printerInfo : printerInfoList) {
+        mPrinterComboBox->addItem(printerInfo.printerName());
+    }
+
     QFormLayout *layout = new QFormLayout();
     layout->addRow(mErrorCorrectionLabel, mErrorCorrectionComboBox);
     layout->addRow(mSizeLabel, sizeInputLayout);
+    layout->addRow(mPrinterLabel, mPrinterComboBox);
 
     mSettingWidget = new QWidget();
     mSettingWidget->setLayout(layout);
@@ -91,6 +103,15 @@ void QRCodeGenerator::initSettingPart()
 void QRCodeGenerator::initOperationPart()
 {
     mDataEdit = new QTextEdit(QStringLiteral("Hello World"));
+
+    mGenerateAndPrintButton = new QPushButton(QStringLiteral("Generate And Print"));
+    connect(mGenerateAndPrintButton,
+            &QPushButton::clicked,
+            this,
+            &QRCodeGenerator::generateAndPrint);
+
+    mPrintButton = new QPushButton(QStringLiteral("Print"));
+    connect(mPrintButton, &QPushButton::clicked, this, &QRCodeGenerator::print);
 
     mGenerateButton = new QPushButton(QStringLiteral("Generate"));
     connect(mGenerateButton, &QPushButton::clicked, this, &QRCodeGenerator::generate);
@@ -101,6 +122,8 @@ void QRCodeGenerator::initOperationPart()
                                                   QSizePolicy::Minimum,
                                                   QSizePolicy::Expanding);
     buttonLayout->addSpacerItem(verticalSpacer);
+    buttonLayout->addWidget(mGenerateAndPrintButton);
+    buttonLayout->addWidget(mPrintButton);
     buttonLayout->addWidget(mGenerateButton);
 
     QHBoxLayout *layout = new QHBoxLayout();
@@ -153,4 +176,31 @@ void QRCodeGenerator::generate()
     QPixmap pixmap = QPixmap::fromImage(mQRCode);
     pixmap = pixmap.scaled(mPreviewLabel->size());
     mPreviewLabel->setPixmap(pixmap);
+}
+
+void QRCodeGenerator::print()
+{
+    if (mQRCode.isNull()) {
+        QMessageBox::critical(this,
+                              QStringLiteral("Error"),
+                              QStringLiteral(
+                                  "No valid QR code found, please generate a QR code first."));
+        return;
+    }
+
+    QPrinter printer;
+    printer.setPrinterName(mPrinterComboBox->currentText());
+
+    QPainter painter;
+    painter.begin(&printer);
+    painter.drawImage(printer.pageLayout().paintRectPixels(printer.resolution()), mQRCode);
+    painter.end();
+
+    QMessageBox::information(this, QStringLiteral("Info"), QStringLiteral("Sent to print queue."));
+}
+
+void QRCodeGenerator::generateAndPrint()
+{
+    generate();
+    print();
 }
