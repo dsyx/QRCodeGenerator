@@ -45,7 +45,7 @@ void QRCodeGenerator::initMenuBar()
     mSaveAsAction = new QAction(QStringLiteral("Save &as"));
     connect(mSaveAsAction, &QAction::triggered, this, &QRCodeGenerator::saveAs);
     mFileMenu->addAction(mSaveAsAction);
-
+    
     mMenuBar = new QMenuBar();
     mMenuBar->addMenu(mFileMenu);
 }
@@ -90,11 +90,24 @@ void QRCodeGenerator::initSettingPart()
     for (const auto &printerInfo : printerInfoList) {
         mPrinterComboBox->addItem(printerInfo.printerName());
     }
+#ifndef NDEBUG
+    connect(mPrinterComboBox,
+            &QComboBox::currentTextChanged,
+            this,
+            &QRCodeGenerator::printPrinterInfo);
+#endif
+
+    mPrintModeLabel = new QLabel(QStringLiteral("Print Mode:"));
+    mPrintModeComboBox = new QComboBox();
+    mPrintModeMap.insert(QStringLiteral("Normal"), Normal);
+    mPrintModeMap.insert(QStringLiteral("Full"), Full);
+    mPrintModeComboBox->insertItems(0, mPrintModeMap.keys());
 
     QFormLayout *layout = new QFormLayout();
     layout->addRow(mErrorCorrectionLabel, mErrorCorrectionComboBox);
     layout->addRow(mSizeLabel, sizeInputLayout);
     layout->addRow(mPrinterLabel, mPrinterComboBox);
+    layout->addRow(mPrintModeLabel, mPrintModeComboBox);
 
     mSettingWidget = new QWidget();
     mSettingWidget->setLayout(layout);
@@ -190,10 +203,30 @@ void QRCodeGenerator::print()
 
     QPrinter printer;
     printer.setPrinterName(mPrinterComboBox->currentText());
+    int resolution = printer.resolution();
+    QPageLayout layout = printer.pageLayout();
+    QRect fullRect = layout.fullRectPixels(resolution);
+    QRect paintableRect(fullRect.x(),
+                        fullRect.y(),
+                        fullRect.width() - (0.16 * resolution),
+                        fullRect.height() - (0.16 * resolution));
+    QRect paintRect;
+    if (mPrintModeMap[mPrintModeComboBox->currentText()] == Normal) {
+        int width = paintableRect.width() > mQRCode.width() ? mQRCode.width()
+                                                            : paintableRect.width();
+        int height = paintableRect.height() > mQRCode.height() ? mQRCode.height()
+                                                               : paintableRect.height();
+        paintRect.setRect(paintableRect.x(), paintableRect.y(), width, height);
+    } else {
+        paintRect.setRect(paintableRect.x(),
+                          paintableRect.y(),
+                          paintableRect.width(),
+                          paintableRect.height());
+    }
 
     QPainter painter;
     painter.begin(&printer);
-    painter.drawImage(printer.pageLayout().paintRectPixels(printer.resolution()), mQRCode);
+    painter.drawImage(paintRect, mQRCode);
     painter.end();
 
     QMessageBox::information(this, QStringLiteral("Info"), QStringLiteral("Sent to print queue."));
@@ -204,3 +237,45 @@ void QRCodeGenerator::generateAndPrint()
     generate();
     print();
 }
+
+#ifndef NDEBUG
+void QRCodeGenerator::printPrinterInfo(const QString &name)
+{
+    QPrinter printer;
+    printer.setPrinterName(name);
+    static const char *boolStrings[] = {"False", "True"};
+    static const char *colorModeStrings[] = {"GrayScale", "Color"};
+    static const char *duplexStrings[] = {"DuplexNone",
+                                          "DuplexAuto",
+                                          "DuplexLongSide",
+                                          "DuplexShortSide"};
+    static const char *outputFormatStrings[] = {"NativeFormat", "PdfFormat"};
+    static const char *printerStateStrings[] = {"Idle", "Active", "Aborted", "Error"};
+    qDebug() << "Printer" << name << "Info:";
+    qDebug() << "\tColor Mode:" << colorModeStrings[printer.colorMode()];
+    qDebug() << "\tDuplex Mode:" << duplexStrings[printer.duplex()];
+    qDebug() << "\tFull Page:" << boolStrings[printer.fullPage()];
+    qDebug() << "\tIs Vaild:" << boolStrings[printer.isValid()];
+    qDebug() << "\tOutput Format:" << outputFormatStrings[printer.outputFormat()];
+    qDebug() << "\tPrinter State:" << printerStateStrings[printer.printerState()];
+    qDebug() << "\tResolution:" << printer.resolution();
+
+    QPageLayout layout = printer.pageLayout();
+    static const char *modeStrings[] = {"StandardMode", "FullPageMode"};
+    static const char *orientationStrings[] = {"Portrait", "Landscape"};
+    static const char *unitsStrings[] = {"Millimeter", "Point", "Inch", "Pica", "Didot", "Cicero"};
+    int resolution = printer.resolution();
+    qDebug() << "\tPage Layout:";
+    qDebug() << "\t\tFull Rect:" << layout.fullRect();
+    qDebug() << "\t\tFull Rect Pixels:" << layout.fullRectPixels(resolution);
+    qDebug() << "\t\tMargins:" << layout.margins();
+    qDebug() << "\t\tMargins Pixels:" << layout.marginsPixels(resolution);
+    qDebug() << "\t\tMode:" << modeStrings[layout.mode()];
+    qDebug() << "\t\tOrientation:" << orientationStrings[layout.orientation()];
+    qDebug() << "\t\tPage Size:" << layout.pageSize();
+    qDebug() << "\t\tPage Size Pixels:" << layout.paintRectPixels(resolution);
+    qDebug() << "\t\tPaint Rect:" << layout.paintRect();
+    qDebug() << "\t\tPaint Rect Pixels:" << layout.paintRectPixels(resolution);
+    qDebug() << "\t\tUnits:" << unitsStrings[layout.units()];
+}
+#endif

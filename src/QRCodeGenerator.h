@@ -24,16 +24,25 @@ public:
     ~QRCodeGenerator();
 
 private:
+    enum PrintMode {
+        Normal = 0,
+        Full = 1,
+    };
+
+private:
     void initMenuBar();
     void initPreviewPart();
     void initSettingPart();
     void initOperationPart();
-
+    
 private slots:
     void saveAs();
     void generate();
     void print();
     void generateAndPrint();
+#ifndef NDEBUG
+    void printPrinterInfo(const QString &name);
+#endif
 
 private:
     QImage mQRCode;
@@ -41,7 +50,7 @@ private:
     QMenuBar *mMenuBar;
     QMenu *mFileMenu;
     QAction *mSaveAsAction;
-
+    
     QLabel *mPreviewLabel;
     QWidget *mPreviewWidget;
 
@@ -53,6 +62,9 @@ private:
     QLineEdit *mSizeHeightEdit;
     QLabel *mPrinterLabel;
     QComboBox *mPrinterComboBox;
+    QLabel *mPrintModeLabel;
+    QComboBox *mPrintModeComboBox;
+    QMap<QString, PrintMode> mPrintModeMap;
     QWidget *mSettingWidget;
 
     QTextEdit *mDataEdit;
