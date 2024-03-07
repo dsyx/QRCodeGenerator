@@ -11,10 +11,12 @@ CONFIG += c++17
 include(qzxing/src/qzxing.pri)
 
 SOURCES += \
+    PageSetupDialog.cpp \
     QRCodeGenerator.cpp \
     main.cpp
 
 HEADERS += \
+    PageSetupDialog.h \
     QRCodeGenerator.h
 
 TRANSLATIONS += \
