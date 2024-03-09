@@ -4,7 +4,6 @@
 #include <QComboBox>
 #include <QDialog>
 #include <QGroupBox>
-#include <QHash>
 #include <QLabel>
 #include <QLineEdit>
 #include <QMarginsF>
@@ -22,19 +21,13 @@ public:
     };
 
 public:
-    PageSetupDialog(QWidget *parent = nullptr);
+    explicit PageSetupDialog(QWidget *parent = nullptr);
     ~PageSetupDialog();
 
     QString printerName() const { return mPrinterName; }
     PrintingMethod printingMethod() const { return mPrintingMethod; }
     QPageLayout::Orientation orientation() const { return mOrientation; }
     QMarginsF margins() const { return mMargins; }
-
-private:
-    void updatePrinterName();
-    void updatePrintingMethod();
-    void updateOrientation();
-    void updateMargins();
 
 private slots:
     void updatePageSetup();
@@ -44,9 +37,6 @@ private:
     PrintingMethod mPrintingMethod;
     QPageLayout::Orientation mOrientation;
     QMarginsF mMargins;
-
-    QHash<QString, PrintingMethod> mPrintingMethodHash;
-    QHash<QString, QPageLayout::Orientation> mOrientationHash;
 
 private:
     QLabel *mPrinterNameLabel;
@@ -74,5 +64,7 @@ private:
 private:
     static constexpr qreal DEFAULT_MARGIN_LENGTH = 4.23;
 };
+
+Q_DECLARE_METATYPE(PageSetupDialog::PrintingMethod)
 
 #endif // PAGESETUPDIALOG_H

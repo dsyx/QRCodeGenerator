@@ -1,21 +1,14 @@
 #ifndef QRCODEGENERATOR_H
 #define QRCODEGENERATOR_H
 
-#include <QAction>
-#include <QComboBox>
-#include <QHash>
 #include <QImage>
 #include <QLabel>
-#include <QLineEdit>
 #include <QMainWindow>
-#include <QMenu>
-#include <QMenuBar>
-#include <QPlainTextEdit>
 #include <QPrinter>
-#include <QPushButton>
-#include <QWidget>
+#include "MenuBar.h"
+#include "OperationWidget.h"
 #include "PageSetupDialog.h"
-#include "QZXing.h"
+#include "QRCodeSetupWidget.h"
 
 class QRCodeGenerator : public QMainWindow
 {
@@ -26,13 +19,7 @@ public:
     ~QRCodeGenerator();
 
 private:
-    void initMenuBar();
-    void initPreviewPart();
-    void initSettingPart();
-    void initOperationPart();
-    void initPageSetupDialog();
-
-    QMarginsF millimeterToOther(QMarginsF margins, QPageLayout::Unit unit);
+    bool checkQRCode();
 
 private slots:
     void saveAs();
@@ -44,34 +31,16 @@ private slots:
     void paintToPrinter(QPrinter *printer);
 
 private:
-    QMenuBar *mMenuBar;
-    QMenu *mFileMenu;
-    QAction *mSaveAsAction;
-    QAction *mPrintPreviewAction;
-    QAction *mPageSetupAction;
-    QAction *mPrintAction;
-    QAction *mExitAction;
-
-    QLabel *mPreviewWidget;
-
-    QLabel *mErrorCorrectionLabel;
-    QComboBox *mErrorCorrectionComboBox;
-    QLabel *mSizeLabel;
-    QLineEdit *mSizeWidthEdit;
-    QLineEdit *mSizeHeightEdit;
-    QWidget *mSettingWidget;
-
-    QPlainTextEdit *mDataEdit;
-    QPushButton *mPrintButton;
-    QPushButton *mGenerateButton;
-    QWidget *mOperationWidget;
-
-    PageSetupDialog *mPageSetupDialog;
-
     QImage mQRCode;
-    QHash<QString, QZXing::EncodeErrorCorrectionLevel> mErrorCorrectionHash;
 
 private:
-    static constexpr int DEFAULT_QR_CODE_LENGTH_OR_WIDTH = 128;
+    MenuBar *mMenuBar;
+    QLabel *mPreviewWidget;
+    QRCodeSetupWidget *mQRCodeSetupWidget;
+    OperationWidget *mOperationWidget;
+    PageSetupDialog *mPageSetupDialog;
+
+private:
+    static constexpr int DEFAULT_QR_CODE_LENGTH_OR_WIDTH = 256;
 };
 #endif // QRCODEGENERATOR_H

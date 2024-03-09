@@ -16,17 +16,33 @@
 #endif
 
 QRCodeGenerator::QRCodeGenerator(QWidget *parent)
-    : QMainWindow(parent)
+    : QMainWindow{parent}
+    , mMenuBar{new MenuBar()}
+    , mPreviewWidget{new QLabel(QStringLiteral("QR Code Preview"))}
+    , mQRCodeSetupWidget{new QRCodeSetupWidget()}
+    , mOperationWidget{new OperationWidget()}
+    , mPageSetupDialog{new PageSetupDialog(this)}
 {
-    initMenuBar();
-    initPreviewPart();
-    initSettingPart();
-    initOperationPart();
-    initPageSetupDialog();
+    // MenuBar
+    setMenuBar(mMenuBar);
+    connect(mMenuBar, &MenuBar::saveAs, this, &QRCodeGenerator::saveAs);
+    connect(mMenuBar, &MenuBar::printPreview, this, &QRCodeGenerator::printPreview);
+    connect(mMenuBar, &MenuBar::pageSetup, this, &QRCodeGenerator::pageSetup);
+    connect(mMenuBar, &MenuBar::print, this, &QRCodeGenerator::print);
+    connect(mMenuBar, &MenuBar::exit, this, &QRCodeGenerator::exit);
+
+    // PreviewWidget
+    mPreviewWidget->setAlignment(Qt::AlignCenter);
+    mPreviewWidget->setFrameStyle(QFrame::Panel | QFrame::Sunken);
+    mPreviewWidget->setMinimumSize(DEFAULT_QR_CODE_LENGTH_OR_WIDTH, DEFAULT_QR_CODE_LENGTH_OR_WIDTH);
+
+    // OperationWidget
+    connect(mOperationWidget, &OperationWidget::print, this, &QRCodeGenerator::print);
+    connect(mOperationWidget, &OperationWidget::generate, this, &QRCodeGenerator::generate);
 
     QHBoxLayout *psLayout = new QHBoxLayout();
     psLayout->addWidget(mPreviewWidget, 6);
-    psLayout->addWidget(mSettingWidget, 4);
+    psLayout->addWidget(mQRCodeSetupWidget, 4);
 
     QVBoxLayout *layout = new QVBoxLayout();
     layout->addLayout(psLayout, 6);
@@ -41,144 +57,21 @@ QRCodeGenerator::QRCodeGenerator(QWidget *parent)
 
 QRCodeGenerator::~QRCodeGenerator() {}
 
-void QRCodeGenerator::initMenuBar()
-{
-    mSaveAsAction = new QAction(QStringLiteral("Save as"));
-    mSaveAsAction->setShortcut(QKeySequence::SaveAs);
-    connect(mSaveAsAction, &QAction::triggered, this, &QRCodeGenerator::saveAs);
-
-    mPrintPreviewAction = new QAction(QStringLiteral("Print Preview"));
-    connect(mPrintPreviewAction, &QAction::triggered, this, &QRCodeGenerator::printPreview);
-
-    mPageSetupAction = new QAction(QStringLiteral("Page Setup"));
-    connect(mPageSetupAction, &QAction::triggered, this, &QRCodeGenerator::pageSetup);
-
-    mPrintAction = new QAction(QStringLiteral("Print"));
-    mPrintAction->setShortcut(QKeySequence::Print);
-    connect(mPrintAction, &QAction::triggered, this, &QRCodeGenerator::print);
-
-    mExitAction = new QAction(QStringLiteral("Exit"));
-    connect(mExitAction, &QAction::triggered, this, &QRCodeGenerator::exit);
-
-    mFileMenu = new QMenu(QStringLiteral("File"));
-    mFileMenu->addAction(mSaveAsAction);
-    mFileMenu->addSeparator();
-    mFileMenu->addAction(mPrintPreviewAction);
-    mFileMenu->addAction(mPageSetupAction);
-    mFileMenu->addAction(mPrintAction);
-    mFileMenu->addSeparator();
-    mFileMenu->addAction(mExitAction);
-
-    mMenuBar = new QMenuBar();
-    mMenuBar->addMenu(mFileMenu);
-    setMenuBar(mMenuBar);
-}
-
-void QRCodeGenerator::initPreviewPart()
-{
-    mPreviewWidget = new QLabel(QStringLiteral("QR Code Preview"));
-    mPreviewWidget->setAlignment(Qt::AlignCenter);
-    mPreviewWidget->setFrameStyle(QFrame::Panel | QFrame::Sunken);
-    mPreviewWidget->setMinimumSize(DEFAULT_QR_CODE_LENGTH_OR_WIDTH, DEFAULT_QR_CODE_LENGTH_OR_WIDTH);
-}
-
-void QRCodeGenerator::initSettingPart()
-{
-    mErrorCorrectionHash.insert(QStringLiteral("Low"), QZXing::EncodeErrorCorrectionLevel_L);
-    mErrorCorrectionHash.insert(QStringLiteral("Medium"), QZXing::EncodeErrorCorrectionLevel_M);
-    mErrorCorrectionHash.insert(QStringLiteral("Quartile"), QZXing::EncodeErrorCorrectionLevel_Q);
-    mErrorCorrectionHash.insert(QStringLiteral("High"), QZXing::EncodeErrorCorrectionLevel_H);
-
-    mErrorCorrectionLabel = new QLabel(QStringLiteral("Error Correction:"));
-    mErrorCorrectionComboBox = new QComboBox();
-    mErrorCorrectionComboBox->insertItem(0, QStringLiteral("Low"));
-    mErrorCorrectionComboBox->insertItem(1, QStringLiteral("Medium"));
-    mErrorCorrectionComboBox->insertItem(2, QStringLiteral("Quartile"));
-    mErrorCorrectionComboBox->insertItem(3, QStringLiteral("High"));
-    mErrorCorrectionComboBox->setCurrentIndex(2);
-
-    mSizeLabel = new QLabel(QStringLiteral("Size (Width x Height):"));
-    mSizeWidthEdit = new QLineEdit(QString::number(DEFAULT_QR_CODE_LENGTH_OR_WIDTH));
-    mSizeWidthEdit->setValidator(new QIntValidator(mSizeWidthEdit));
-    mSizeHeightEdit = new QLineEdit(QString::number(DEFAULT_QR_CODE_LENGTH_OR_WIDTH));
-    mSizeHeightEdit->setValidator(new QIntValidator(mSizeHeightEdit));
-    QHBoxLayout *sizeInputLayout = new QHBoxLayout();
-    sizeInputLayout->addWidget(mSizeWidthEdit);
-    sizeInputLayout->addWidget(new QLabel(QStringLiteral("x")));
-    sizeInputLayout->addWidget(mSizeHeightEdit);
-
-    QFormLayout *layout = new QFormLayout();
-    layout->addRow(mErrorCorrectionLabel, mErrorCorrectionComboBox);
-    layout->addRow(mSizeLabel, sizeInputLayout);
-
-    mSettingWidget = new QWidget();
-    mSettingWidget->setLayout(layout);
-}
-
-void QRCodeGenerator::initOperationPart()
-{
-    mDataEdit = new QPlainTextEdit(QStringLiteral("Hello World"));
-
-    mPrintButton = new QPushButton(QStringLiteral("Print"));
-    connect(mPrintButton, &QPushButton::clicked, this, &QRCodeGenerator::print);
-
-    mGenerateButton = new QPushButton(QStringLiteral("Generate"));
-    connect(mGenerateButton, &QPushButton::clicked, this, &QRCodeGenerator::generate);
-
-    QVBoxLayout *buttonLayout = new QVBoxLayout();
-    QSpacerItem *verticalSpacer = new QSpacerItem(20,
-                                                  40,
-                                                  QSizePolicy::Minimum,
-                                                  QSizePolicy::Expanding);
-    buttonLayout->addSpacerItem(verticalSpacer);
-    buttonLayout->addWidget(mPrintButton);
-    buttonLayout->addWidget(mGenerateButton);
-
-    QHBoxLayout *layout = new QHBoxLayout();
-    layout->addWidget(mDataEdit, 8);
-    layout->addLayout(buttonLayout, 2);
-
-    mOperationWidget = new QWidget();
-    mOperationWidget->setLayout(layout);
-}
-
-void QRCodeGenerator::initPageSetupDialog()
-{
-    mPageSetupDialog = new PageSetupDialog(this);
-}
-
-QMarginsF QRCodeGenerator::millimeterToOther(QMarginsF margins, QPageLayout::Unit unit)
-{
-    qreal factor = 1.0;
-    switch (unit) {
-    case QPageLayout::Point:
-        factor = 72.0 / 25.4;
-        break;
-    case QPageLayout::Inch:
-        factor = 1.0 / 25.4;
-        break;
-    case QPageLayout::Pica:
-        factor = 6.0 / 25.4;
-        break;
-    case QPageLayout::Didot:
-        factor = 1.0 / 0.375;
-        break;
-    case QPageLayout::Cicero:
-        factor = 1.0 / 4.5;
-        break;
-    default:
-        break;
-    }
-    return margins * factor;
-}
-
-void QRCodeGenerator::saveAs()
+bool QRCodeGenerator::checkQRCode()
 {
     if (mQRCode.isNull()) {
         QMessageBox::critical(this,
                               QStringLiteral("Error"),
-                              QStringLiteral(
-                                  "No valid QR code found, please generate a QR code first."));
+                              QStringLiteral("QRCode not available."));
+        return false;
+    }
+
+    return true;
+}
+
+void QRCodeGenerator::saveAs()
+{
+    if (!checkQRCode()) {
         return;
     }
 
@@ -189,6 +82,7 @@ void QRCodeGenerator::saveAs()
     if (fileName.isEmpty()) {
         return;
     }
+
     if (!mQRCode.save(fileName)) {
         QMessageBox::critical(this,
                               QStringLiteral("Error"),
@@ -198,11 +92,7 @@ void QRCodeGenerator::saveAs()
 
 void QRCodeGenerator::printPreview()
 {
-    if (mQRCode.isNull()) {
-        QMessageBox::critical(this,
-                              QStringLiteral("Error"),
-                              QStringLiteral(
-                                  "No valid QR code found, please generate a QR code first."));
+    if (!checkQRCode()) {
         return;
     }
 
@@ -230,11 +120,7 @@ void QRCodeGenerator::pageSetup()
 
 void QRCodeGenerator::print()
 {
-    if (mQRCode.isNull()) {
-        QMessageBox::critical(this,
-                              QStringLiteral("Error"),
-                              QStringLiteral(
-                                  "No valid QR code found, please generate a QR code first."));
+    if (!checkQRCode()) {
         return;
     }
 
@@ -257,24 +143,17 @@ void QRCodeGenerator::print()
 
 void QRCodeGenerator::exit()
 {
-    if (QMessageBox::question(this,
-                              "Exit",
-                              "Are you sure you want to exit?",
-                              QMessageBox::Yes | QMessageBox::No)
-        == QMessageBox::Yes) {
-        qApp->quit();
-    }
+    qApp->quit();
 }
 
 void QRCodeGenerator::generate()
 {
-    QString data = mDataEdit->toPlainText();
+    QString data = mOperationWidget->data();
     if (data.isEmpty()) {
         return;
     }
-    QZXing::EncodeErrorCorrectionLevel errorCorrection
-        = mErrorCorrectionHash[mErrorCorrectionComboBox->currentText()];
-    QSize size(mSizeWidthEdit->text().toInt(), mSizeHeightEdit->text().toInt());
+    QZXing::EncodeErrorCorrectionLevel errorCorrection = mQRCodeSetupWidget->errorCorrection();
+    QSize size = mQRCodeSetupWidget->size();
     mQRCode = QZXing::encodeData(data,
                                  QZXing::EncoderFormat_QR_CODE,
                                  size,
