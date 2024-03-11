@@ -7,7 +7,7 @@
 #include <QPrinter>
 #include "MenuBar.h"
 #include "OperationWidget.h"
-#include "PageSetupDialog.h"
+#include "PrinterSetupDialog.h"
 #include "QRCodeSetupWidget.h"
 
 class QRCodeGenerator : public QMainWindow
@@ -24,11 +24,11 @@ private:
 private slots:
     void saveAs();
     void printPreview();
-    void pageSetup();
+    void printerSetup();
     void print();
     void exit();
     void generate();
-    void paintToPrinter(QPrinter *printer);
+    void paintQRCode(QPrinter *printer);
 
 private:
     QImage mQRCode;
@@ -38,7 +38,7 @@ private:
     QLabel *mPreviewWidget;
     QRCodeSetupWidget *mQRCodeSetupWidget;
     OperationWidget *mOperationWidget;
-    PageSetupDialog *mPageSetupDialog;
+    PrinterSetupDialog *mPrinterSetupDialog;
 
 private:
     static constexpr int DEFAULT_QR_CODE_LENGTH_OR_WIDTH = 256;

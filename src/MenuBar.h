@@ -16,7 +16,7 @@ public:
 signals:
     void saveAs();
     void printPreview();
-    void pageSetup();
+    void printerSetup();
     void print();
     void exit();
 
@@ -25,7 +25,7 @@ private:
 
     QAction *mSaveAsAction;
     QAction *mPrintPreviewAction;
-    QAction *mPageSetupAction;
+    QAction *mPrinterSetupAction;
     QAction *mPrintAction;
     QAction *mExitAction;
 };

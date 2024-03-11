@@ -11,9 +11,7 @@
 #include <QSizePolicy>
 #include <QSpacerItem>
 #include <QVBoxLayout>
-#ifndef NDEBUG
 #include <QDebug>
-#endif
 
 QRCodeGenerator::QRCodeGenerator(QWidget *parent)
     : QMainWindow{parent}
@@ -21,13 +19,13 @@ QRCodeGenerator::QRCodeGenerator(QWidget *parent)
     , mPreviewWidget{new QLabel(QStringLiteral("QR Code Preview"))}
     , mQRCodeSetupWidget{new QRCodeSetupWidget()}
     , mOperationWidget{new OperationWidget()}
-    , mPageSetupDialog{new PageSetupDialog(this)}
+    , mPrinterSetupDialog{new PrinterSetupDialog(this)}
 {
     // MenuBar
     setMenuBar(mMenuBar);
     connect(mMenuBar, &MenuBar::saveAs, this, &QRCodeGenerator::saveAs);
     connect(mMenuBar, &MenuBar::printPreview, this, &QRCodeGenerator::printPreview);
-    connect(mMenuBar, &MenuBar::pageSetup, this, &QRCodeGenerator::pageSetup);
+    connect(mMenuBar, &MenuBar::printerSetup, this, &QRCodeGenerator::printerSetup);
     connect(mMenuBar, &MenuBar::print, this, &QRCodeGenerator::print);
     connect(mMenuBar, &MenuBar::exit, this, &QRCodeGenerator::exit);
 
@@ -96,26 +94,15 @@ void QRCodeGenerator::printPreview()
         return;
     }
 
-    if (mPageSetupDialog->printerName().isEmpty()) {
-        QMessageBox::critical(this,
-                              QStringLiteral("Error"),
-                              QStringLiteral("No printer is selected."));
-        return;
-    }
-
-    QPrinter printer;
-    printer.setPrinterName(mPageSetupDialog->printerName());
-    printer.setFullPage(true);
-    printer.setPageOrientation(mPageSetupDialog->orientation());
-    printer.setPageMargins(mPageSetupDialog->margins(), QPageLayout::Millimeter);
-    QPrintPreviewDialog dialog(&printer);
-    connect(&dialog, &QPrintPreviewDialog::paintRequested, this, &QRCodeGenerator::paintToPrinter);
+    QPrinter *printer = mPrinterSetupDialog->printer();
+    QPrintPreviewDialog dialog(printer);
+    connect(&dialog, &QPrintPreviewDialog::paintRequested, this, &QRCodeGenerator::paintQRCode);
     dialog.exec();
 }
 
-void QRCodeGenerator::pageSetup()
+void QRCodeGenerator::printerSetup()
 {
-    mPageSetupDialog->exec();
+    mPrinterSetupDialog->exec();
 }
 
 void QRCodeGenerator::print()
@@ -124,19 +111,8 @@ void QRCodeGenerator::print()
         return;
     }
 
-    if (mPageSetupDialog->printerName().isEmpty()) {
-        QMessageBox::critical(this,
-                              QStringLiteral("Error"),
-                              QStringLiteral("No printer is selected."));
-        return;
-    }
-
-    QPrinter printer;
-    printer.setPrinterName(mPageSetupDialog->printerName());
-    printer.setFullPage(true);
-    printer.setPageOrientation(mPageSetupDialog->orientation());
-    printer.setPageMargins(mPageSetupDialog->margins(), QPageLayout::Millimeter);
-    paintToPrinter(&printer);
+    QPrinter *printer = mPrinterSetupDialog->printer();
+    paintQRCode(printer);
 
     QMessageBox::information(this, QStringLiteral("Info"), QStringLiteral("Sent to print queue."));
 }
@@ -166,49 +142,19 @@ void QRCodeGenerator::generate()
     mPreviewWidget->setPixmap(pixmap);
 }
 
-void QRCodeGenerator::paintToPrinter(QPrinter *printer)
+void QRCodeGenerator::paintQRCode(QPrinter *printer)
 {
-    if (!printer) {
-        return;
-    }
-    if (mQRCode.isNull()) {
+    if (!printer || !checkQRCode()) {
         return;
     }
 
-    int resolution = printer->resolution();
-    QPageLayout layout = printer->pageLayout();
-    QRect paperRect = layout.fullRectPixels(resolution);
-    QMargins margins = layout.marginsPixels(resolution);
-    QRect paintRect(paperRect.x() + margins.left(),
-                    paperRect.y() + margins.top(),
-                    paperRect.width() - margins.right(),
-                    paperRect.height() - margins.bottom());
-    if (mPageSetupDialog->printingMethod() == PageSetupDialog::Normal) {
-        paintRect.setWidth(paintRect.width() > mQRCode.width() ? mQRCode.width()
-                                                               : paintRect.width());
-        paintRect.setHeight(paintRect.height() > mQRCode.height() ? mQRCode.height()
-                                                                  : paintRect.height());
-    }
+    bool scaling = mPrinterSetupDialog->isScaling();
+    QRect pageRect = printer->pageLayout().paintRectPixels(printer->resolution());
+    QRect paintRect = QRect(0,
+                            0,
+                            scaling ? pageRect.width() : mQRCode.width(),
+                            scaling ? pageRect.height() : mQRCode.height());
 
-    QPainter painter;
-    painter.begin(printer);
+    QPainter painter(printer);
     painter.drawImage(paintRect, mQRCode);
-#ifndef NDEBUG
-    QPen paperRectPen;
-    paperRectPen.setColor(Qt::red);
-    paperRectPen.setStyle(Qt::SolidLine);
-    paperRectPen.setWidth(2);
-    painter.setPen(paperRectPen);
-    painter.drawRect(paperRect);
-    qDebug() << "Draw PaperRect:" << paperRect;
-
-    QPen paintRectPen;
-    paintRectPen.setColor(Qt::green);
-    paintRectPen.setStyle(Qt::DotLine);
-    paintRectPen.setWidth(2);
-    painter.setPen(paintRectPen);
-    painter.drawRect(paintRect);
-    qDebug() << "Draw PaintRect:" << paintRect;
-#endif
-    painter.end();
 }

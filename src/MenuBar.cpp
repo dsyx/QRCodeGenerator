@@ -5,7 +5,7 @@ MenuBar::MenuBar(QWidget *parent)
     , mFileMenu{new QMenu(QStringLiteral("File"))}
     , mSaveAsAction{new QAction(QStringLiteral("Save as"))}
     , mPrintPreviewAction{new QAction(QStringLiteral("Print Preview"))}
-    , mPageSetupAction{new QAction(QStringLiteral("Page Setup"))}
+    , mPrinterSetupAction{new QAction(QStringLiteral("Printer Setup"))}
     , mPrintAction{new QAction(QStringLiteral("Print"))}
     , mExitAction{new QAction(QStringLiteral("Exit"))}
 {
@@ -14,7 +14,7 @@ MenuBar::MenuBar(QWidget *parent)
 
     connect(mPrintPreviewAction, &QAction::triggered, this, &MenuBar::printPreview);
 
-    connect(mPageSetupAction, &QAction::triggered, this, &MenuBar::pageSetup);
+    connect(mPrinterSetupAction, &QAction::triggered, this, &MenuBar::printerSetup);
 
     mPrintAction->setShortcut(QKeySequence::Print);
     connect(mPrintAction, &QAction::triggered, this, &MenuBar::print);
@@ -24,7 +24,7 @@ MenuBar::MenuBar(QWidget *parent)
     mFileMenu->addAction(mSaveAsAction);
     mFileMenu->addSeparator();
     mFileMenu->addAction(mPrintPreviewAction);
-    mFileMenu->addAction(mPageSetupAction);
+    mFileMenu->addAction(mPrinterSetupAction);
     mFileMenu->addAction(mPrintAction);
     mFileMenu->addSeparator();
     mFileMenu->addAction(mExitAction);

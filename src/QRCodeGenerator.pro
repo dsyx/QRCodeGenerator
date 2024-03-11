@@ -13,7 +13,7 @@ include(qzxing/src/qzxing.pri)
 SOURCES += \
     MenuBar.cpp \
     OperationWidget.cpp \
-    PageSetupDialog.cpp \
+    PrinterSetupDialog.cpp \
     QRCodeGenerator.cpp \
     QRCodeSetupWidget.cpp \
     main.cpp
@@ -21,7 +21,7 @@ SOURCES += \
 HEADERS += \
     MenuBar.h \
     OperationWidget.h \
-    PageSetupDialog.h \
+    PrinterSetupDialog.h \
     QRCodeGenerator.h \
     QRCodeSetupWidget.h
 
