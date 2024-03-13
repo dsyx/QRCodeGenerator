@@ -19,14 +19,14 @@ public:
     explicit PrinterSetupDialog(QWidget *parent = nullptr);
     ~PrinterSetupDialog();
 
-    QPrinter *printer() { return &mPrinter; }
+    QPrinter *printer() { return mPrinter; }
     bool isScaling() const { return mScaling; }
 
 private slots:
     void updatePrinterSetup();
 
 private:
-    QPrinter mPrinter;
+    QPrinter *mPrinter;
     bool mScaling;
 
 private:

@@ -1,4 +1,4 @@
-QT       += core gui printsupport
+QT       += core gui printsupport serialport
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -16,6 +16,7 @@ SOURCES += \
     PrinterSetupDialog.cpp \
     QRCodeGenerator.cpp \
     QRCodeSetupWidget.cpp \
+    SerialSetupDialog.cpp \
     main.cpp
 
 HEADERS += \
@@ -23,7 +24,8 @@ HEADERS += \
     OperationWidget.h \
     PrinterSetupDialog.h \
     QRCodeGenerator.h \
-    QRCodeSetupWidget.h
+    QRCodeSetupWidget.h \
+    SerialSetupDialog.h
 
 TRANSLATIONS += \
     QRCodeGenerator_zh_CN.ts

@@ -11,8 +11,8 @@
 
 PrinterSetupDialog::PrinterSetupDialog(QWidget *parent)
     : QDialog{parent}
-    , mPrinter(QPrinter::HighResolution)
-    , mScaling(false)
+    , mPrinter{new QPrinter(QPrinter::HighResolution)}
+    , mScaling{false}
     , mPrinterNameLabel{new QLabel(QStringLiteral("Printer Name:"))}
     , mPrinterNameComboBox{new QComboBox()}
     , mPageSizeLabel{new QLabel(QStringLiteral("Page Size:"))}
@@ -105,14 +105,16 @@ PrinterSetupDialog::PrinterSetupDialog(QWidget *parent)
     resize(sizeHint());
 }
 
-PrinterSetupDialog::~PrinterSetupDialog() {}
+PrinterSetupDialog::~PrinterSetupDialog() {
+    delete mPrinter;
+}
 
 void PrinterSetupDialog::updatePrinterSetup()
 {
-    mPrinter.setPrinterName(mPrinterNameComboBox->currentText());
+    mPrinter->setPrinterName(mPrinterNameComboBox->currentText());
 
     if (!mPageSizeComboBox->currentText().isEmpty()) {
-        if (!mPrinter.setPageSize(mPageSizeComboBox->currentData().value<QPageSize>())) {
+        if (!mPrinter->setPageSize(mPageSizeComboBox->currentData().value<QPageSize>())) {
             QMessageBox::critical(this,
                                   QStringLiteral("Error"),
                                   QStringLiteral("Failed to set page size."));
@@ -120,7 +122,7 @@ void PrinterSetupDialog::updatePrinterSetup()
         }
     }
 
-    if (!mPrinter.setPageOrientation(
+    if (!mPrinter->setPageOrientation(
             mOrientationComboBox->currentData().value<QPageLayout::Orientation>())) {
         QMessageBox::critical(this,
                               QStringLiteral("Error"),
@@ -130,7 +132,7 @@ void PrinterSetupDialog::updatePrinterSetup()
 
     mScaling = mScalingComboBox->currentData().value<bool>();
 
-    if (!mPrinter.setPageMargins(QMarginsF(mLeftMarginEdit->text().toDouble(),
+    if (!mPrinter->setPageMargins(QMarginsF(mLeftMarginEdit->text().toDouble(),
                                            mTopMarginEdit->text().toDouble(),
                                            mRightMarginEdit->text().toDouble(),
                                            mBottomMarginEdit->text().toDouble()),

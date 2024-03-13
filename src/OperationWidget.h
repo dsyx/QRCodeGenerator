@@ -1,11 +1,15 @@
 #ifndef OPERATIONWIDGET_H
 #define OPERATIONWIDGET_H
 
+#include <QCheckBox>
+#include <QLineEdit>
 #include <QPlainTextEdit>
 #include <QPushButton>
+#include <QTabWidget>
 #include <QWidget>
+#include "SerialSetupDialog.h"
 
-class OperationWidget : public QWidget
+class OperationWidget : public QTabWidget
 {
     Q_OBJECT
 
@@ -20,9 +24,26 @@ signals:
     void generate();
 
 private:
-    QPlainTextEdit *mDataEdit;
-    QPushButton *mPrintButton;
-    QPushButton *mGenerateButton;
+    void serialSetup();
+    void generateFromSerial();
+
+private:
+    SerialSetupDialog *mSerialSetupDialog;
+
+private:
+    QPlainTextEdit *mTextModeDataEdit;
+    QPushButton *mTextModePrintButton;
+    QPushButton *mTextModeGenerateButton;
+    QWidget *mTextModeWidget;
+
+    QPlainTextEdit *mSerialModeDataEdit;
+    QLineEdit *mSerialModeCmdEdit;
+    QCheckBox *mSerialModeCmdTailLFCheckBox;
+    QCheckBox *mSerialModeCmdTailCRLFCheckBox;
+    QPushButton *mSerialModeSetupButton;
+    QPushButton *mSerialModePrintButton;
+    QPushButton *mSerialModeGenerateButton;
+    QWidget *mSerialModeWidget;
 };
 
 #endif // OPERATIONWIDGET_H
