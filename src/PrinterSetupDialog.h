@@ -3,31 +3,31 @@
 
 #include <QComboBox>
 #include <QDialog>
+#include <QDoubleSpinBox>
 #include <QGroupBox>
 #include <QLabel>
-#include <QLineEdit>
-#include <QMarginsF>
 #include <QPageLayout>
 #include <QPrinter>
 #include <QPushButton>
+#include <QSharedPointer>
 
 class PrinterSetupDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit PrinterSetupDialog(QWidget *parent = nullptr);
+    explicit PrinterSetupDialog(QSharedPointer<QPrinter> p, QWidget *parent = nullptr);
     ~PrinterSetupDialog();
 
-    QPrinter *printer() { return mPrinter; }
-    bool isScaling() const { return mScaling; }
+    QSharedPointer<QPrinter> printer() const;
+    bool scaling() const;
 
 private slots:
-    void updatePrinterSetup();
+    void updateSetup();
+    void restoreSetup();
 
 private:
-    QPrinter *mPrinter;
-    bool mScaling;
+    QSharedPointer<QPrinter> mPrinter;
 
 private:
     QLabel *mPrinterNameLabel;
@@ -41,19 +41,23 @@ private:
 
     QGroupBox *mMarginsGroupBox;
     QLabel *mTopMarginLabel;
-    QLineEdit *mTopMarginEdit;
+    QDoubleSpinBox *mTopMarginSpinBox;
     QLabel *mBottomMarginLabel;
-    QLineEdit *mBottomMarginEdit;
+    QDoubleSpinBox *mBottomMarginSpinBox;
     QLabel *mLeftMarginLabel;
-    QLineEdit *mLeftMarginEdit;
+    QDoubleSpinBox *mLeftMarginSpinBox;
     QLabel *mRightMarginLabel;
-    QLineEdit *mRightMarginEdit;
+    QDoubleSpinBox *mRightMarginSpinBox;
 
     QPushButton *mOkButton;
     QPushButton *mCancelButton;
 
 private:
-    static constexpr qreal DEFAULT_MARGIN_LENGTH = 4.23;
+    static constexpr double MARGINS_MIN_VALUE = 0.0;
+    static constexpr double MARGINS_MAX_VALUE = 9999.9;
+    static constexpr int MARGINS_DECIMALS = 1;
+    static constexpr double MARGINS_SINGLE_STEP = 0.1;
+    static constexpr char MARGINS_SUFFIX[] = "  mm";
 };
 
 #endif // PRINTERSETUPDIALOG_H

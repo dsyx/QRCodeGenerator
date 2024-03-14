@@ -14,11 +14,11 @@ public:
     ~MenuBar();
 
 signals:
-    void saveAs();
-    void printPreview();
-    void printerSetup();
-    void print();
-    void exit();
+    void saveAsRequested();
+    void printPreviewRequested();
+    void printerSetupRequested();
+    void printRequested();
+    void exitRequested();
 
 private:
     QMenu *mFileMenu;

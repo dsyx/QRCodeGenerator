@@ -1,14 +1,11 @@
 #ifndef QRCODEGENERATOR_H
 #define QRCODEGENERATOR_H
 
-#include <QImage>
-#include <QLabel>
-#include <QMainWindow>
-#include <QPrinter>
 #include "MenuBar.h"
 #include "OperationWidget.h"
-#include "PrinterSetupDialog.h"
-#include "QRCodeSetupWidget.h"
+#include "Printer.h"
+#include "QRCodeWidget.h"
+#include <QMainWindow>
 
 class QRCodeGenerator : public QMainWindow
 {
@@ -19,7 +16,7 @@ public:
     ~QRCodeGenerator();
 
 private:
-    bool checkQRCode();
+    bool checkQRCode(const QImage &qrcode);
 
 private slots:
     void saveAs();
@@ -27,20 +24,11 @@ private slots:
     void printerSetup();
     void print();
     void exit();
-    void generate();
-    void paintQRCode(QPrinter *printer);
-
-private:
-    QImage mQRCode;
 
 private:
     MenuBar *mMenuBar;
-    QLabel *mPreviewWidget;
-    QRCodeSetupWidget *mQRCodeSetupWidget;
+    QRCodeWidget *mQRCodeWidget;
     OperationWidget *mOperationWidget;
-    PrinterSetupDialog *mPrinterSetupDialog;
-
-private:
-    static constexpr int DEFAULT_QR_CODE_LENGTH_OR_WIDTH = 256;
+    Printer *mPrinter;
 };
 #endif // QRCODEGENERATOR_H
