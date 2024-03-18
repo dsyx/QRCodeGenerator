@@ -30,5 +30,8 @@ private:
     QRCodeWidget *mQRCodeWidget;
     OperationWidget *mOperationWidget;
     Printer *mPrinter;
+
+private:
+    static constexpr char VERSION[] = "v0.0.1";
 };
 #endif // QRCODEGENERATOR_H

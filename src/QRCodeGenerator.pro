@@ -17,6 +17,7 @@ SOURCES += \
     PrinterSetupDialog.cpp \
     QRCodeGenerator.cpp \
     QRCodeWidget.cpp \
+    Serial.cpp \
     SerialSetupDialog.cpp \
     main.cpp
 
@@ -27,6 +28,7 @@ HEADERS += \
     PrinterSetupDialog.h \
     QRCodeGenerator.h \
     QRCodeWidget.h \
+    Serial.h \
     SerialSetupDialog.h
 
 TRANSLATIONS += \

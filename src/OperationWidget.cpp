@@ -1,5 +1,4 @@
 #include "OperationWidget.h"
-#include <QDebug>
 #include <QHBoxLayout>
 #include <QMessageBox>
 #include <QSpacerItem>
@@ -7,8 +6,7 @@
 
 OperationWidget::OperationWidget(QWidget *parent)
     : QTabWidget{parent}
-    , mSerialPort{QSharedPointer<QSerialPort>::create()}
-    , mSerialPortRxTimer{new QTimer{this}}
+    , mSerial{QSharedPointer<Serial>::create()}
     , mTextModeDataEdit{new QPlainTextEdit{QStringLiteral("Hello World")}}
     , mTextModePrintButton{new QPushButton{QStringLiteral("Print")}}
     , mTextModeGenerateButton{new QPushButton{QStringLiteral("Generate")}}
@@ -21,18 +19,13 @@ OperationWidget::OperationWidget(QWidget *parent)
     , mSerialModePrintButton{new QPushButton{QStringLiteral("Print")}}
     , mSerialModeGenerateButton{new QPushButton{QStringLiteral("Generate")}}
     , mSerialModeWidget{new QWidget{}}
-    , mSerialSetupDialog{new SerialSetupDialog{mSerialPort, this}}
+    , mSerialSetupDialog{new SerialSetupDialog{mSerial, this}}
 {
     // SerialPort
     {
-        connect(mSerialPort.get(), &QSerialPort::errorOccurred, this, &OperationWidget::serialModeErrorOccurredHandler);
-        connect(mSerialPort.get(), &QSerialPort::readyRead, this, &OperationWidget::serialModeReadyReadHandler);
-    }
-
-    // SerialPortRxTimer
-    {
-        mSerialPortRxTimer->setSingleShot(true);
-        connect(mSerialPortRxTimer, &QTimer::timeout, this, &OperationWidget::serialModeReadTimeoutHandler);
+        connect(mSerial.get(), &Serial::response, this, &OperationWidget::serialModeResponseHandler);
+        connect(mSerial.get(), &Serial::timeout, this, &OperationWidget::serialModeTimeoutHandler);
+        connect(mSerial.get(), &Serial::error, this, &OperationWidget::serialModeErrorHandler);
     }
 
     // TextMode
@@ -114,19 +107,17 @@ void OperationWidget::textModeGenerate()
 
 void OperationWidget::serialModeSetup()
 {
-    if (mSerialSetupDialog->exec() == QDialog::Accepted) {
-        mSerialPortRxTimer->setInterval(mSerialSetupDialog->readTimeout());
-    }
+    mSerialSetupDialog->exec();
 }
 
 void OperationWidget::serialModeGenerate()
 {
     mSerialModeDataEdit->clear();
-    serialModeDisableOp();
+    serialModeSetDisabled(true);
 
     QString cmd{mSerialModeCmdEdit->text()};
     if (cmd.isEmpty()) {
-        serialModeEnableOp();
+        serialModeSetDisabled(false);
         return;
     }
     if (mSerialModeCmdTailLFCheckBox->isChecked()) {
@@ -135,67 +126,39 @@ void OperationWidget::serialModeGenerate()
         cmd.append("\r\n");
     }
 
-    if (!mSerialPort->isOpen()) {
-        if (!mSerialPort->open(QIODevice::ReadWrite)) {
-            QMessageBox::critical(this, QStringLiteral("Error"), mSerialPort->errorString());
-            serialModeEnableOp();
-            return;
-        }
-    }
-
-    mSerialPort->clear();
-
-    if (mSerialPort->write(cmd.toUtf8()) == -1) {
-        QMessageBox::critical(this, QStringLiteral("Error"), mSerialPort->errorString());
-        serialModeEnableOp();
-        return;
-    }
-
-    mSerialPortRxTimer->start();
+    mSerial->request(cmd.toUtf8());
 }
 
-void OperationWidget::serialModeDisableOp()
+void OperationWidget::serialModeSetDisabled(bool disable)
 {
-    setDisabled(true);
-    mSerialModeCmdEdit->setDisabled(true);
-    mSerialModeCmdTailLFCheckBox->setDisabled(true);
-    mSerialModeCmdTailCRLFCheckBox->setDisabled(true);
-    mSerialModeSetupButton->setDisabled(true);
-    mSerialModePrintButton->setDisabled(true);
-    mSerialModeGenerateButton->setDisabled(true);
+    setDisabled(disable);
+    mSerialModeCmdEdit->setDisabled(disable);
+    mSerialModeCmdTailLFCheckBox->setDisabled(disable);
+    mSerialModeCmdTailCRLFCheckBox->setDisabled(disable);
+    mSerialModeSetupButton->setDisabled(disable);
+    mSerialModePrintButton->setDisabled(disable);
+    mSerialModeGenerateButton->setDisabled(disable);
 }
 
-void OperationWidget::serialModeEnableOp()
+void OperationWidget::serialModeResponseHandler(const QByteArray &rsp)
 {
-    setDisabled(false);
-    mSerialModeCmdEdit->setDisabled(false);
-    mSerialModeCmdTailLFCheckBox->setDisabled(false);
-    mSerialModeCmdTailCRLFCheckBox->setDisabled(false);
-    mSerialModeSetupButton->setDisabled(false);
-    mSerialModePrintButton->setDisabled(false);
-    mSerialModeGenerateButton->setDisabled(false);
+    QString data{QString::fromUtf8(rsp)};
+    mSerialModeDataEdit->setPlainText(data);
+    emit generateRequested(data);
+
+    serialModeSetDisabled(false);
 }
 
-void OperationWidget::serialModeErrorOccurredHandler(QSerialPort::SerialPortError)
+void OperationWidget::serialModeTimeoutHandler(const QString &description)
 {
-    qDebug() << "Serial Port Error:" << mSerialPort->errorString();
+    QMessageBox::information(this, QStringLiteral("Info"), description);
+
+    serialModeSetDisabled(false);
 }
 
-void OperationWidget::serialModeReadyReadHandler()
+void OperationWidget::serialModeErrorHandler(const QString &description)
 {
-    if (mSerialPortRxTimer->isActive()) {
-        mSerialPortRxTimer->stop();
+    QMessageBox::critical(this, QStringLiteral("Error"), description);
 
-        QString data{QString::fromUtf8(mSerialPort->readAll())};
-        mSerialModeDataEdit->setPlainText(data);
-        serialModeEnableOp();
-
-        emit generateRequested(data);
-    }
-}
-
-void OperationWidget::serialModeReadTimeoutHandler()
-{
-    QMessageBox::information(this, QStringLiteral("Info"), QStringLiteral("Serial Read Timeout"));
-    serialModeEnableOp();
+    serialModeSetDisabled(false);
 }

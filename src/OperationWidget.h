@@ -1,15 +1,14 @@
 #ifndef OPERATIONWIDGET_H
 #define OPERATIONWIDGET_H
 
+#include "Serial.h"
 #include "SerialSetupDialog.h"
 #include <QCheckBox>
 #include <QLineEdit>
 #include <QPlainTextEdit>
 #include <QPushButton>
-#include <QSerialPort>
 #include <QSharedPointer>
 #include <QTabWidget>
-#include <QTimer>
 #include <QWidget>
 
 class OperationWidget : public QTabWidget
@@ -28,17 +27,15 @@ private:
     void textModeGenerate();
     void serialModeSetup();
     void serialModeGenerate();
-    void serialModeDisableOp();
-    void serialModeEnableOp();
+    void serialModeSetDisabled(bool disable);
 
 private slots:
-    void serialModeErrorOccurredHandler(QSerialPort::SerialPortError error);
-    void serialModeReadyReadHandler();
-    void serialModeReadTimeoutHandler();
+    void serialModeResponseHandler(const QByteArray &rsp);
+    void serialModeTimeoutHandler(const QString &description);
+    void serialModeErrorHandler(const QString &description);
 
 private:
-    QSharedPointer<QSerialPort> mSerialPort;
-    QTimer *mSerialPortRxTimer;
+    QSharedPointer<Serial> mSerial;
 
 private:
     QPlainTextEdit *mTextModeDataEdit;

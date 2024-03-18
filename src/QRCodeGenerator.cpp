@@ -38,6 +38,7 @@ QRCodeGenerator::QRCodeGenerator(QWidget *parent)
         setCentralWidget(centeralWidget);
     }
 
+    setWindowTitle(QString("QRCodeGenerator %1").arg(VERSION));
     resize(minimumSizeHint());
 }
 
